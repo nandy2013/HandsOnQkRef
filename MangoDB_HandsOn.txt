@@ -1,3 +1,9 @@
+/* To be explored 
+-- Datatypes usage
+-- AND and OR on same statement - stack overflow
+-- Index Params
+-- Aggregation functions
+*/
 -- New db Creation/Switch to existing db
 > use test_db
 switched to db test_db
@@ -36,3 +42,166 @@ test_db  0.000GB
 -- Show all collections
 > show collections
 item
+
+-- Capped collections is circular collection, old documents will get delete upon the new document creation. Restrict the update, if the operation increase the document size.Because the documents stored in a order on the disk. Best to store log details, cache data.
+
+-- Capped Collection creation
+> db.createCollection("testCappedCollection",{capped:true,size:1000})
+{ "ok" : 1 }
+
+> show collections
+testCappedCollection
+users
+
+-- Check capped or not
+> db.users.isCapped();
+false
+> db.testCappedCollection.isCapped();
+true
+
+-- Convert to capped collection
+> db.runCommand({"convertToCapped":"users",size:1000})
+{ "ok" : 1 }
+
+-- Drop collection
+> db.users.drop()
+true
+
+-- Multiple document insert using Array
+-- _id: hexadecimal number. If not given, it will be created automatically. 
+-- _id: ObjectId(4 bytes timestamp, 3 bytes machine id, 2 bytes process id, 3 bytes incrementer)
+> db.Employee.insert([{_id:20,"EmployeeName":"Nandhi"},{_id:30,"EmployeeName":"Rajan"}])
+BulkWriteResult({
+        "writeErrors" : [ ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 2,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+
+-- Save method similar to Merge in oracle plsql
+> db.Employee.save({_id:50,"EmployeeName":"Raj"})
+WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 50 })
+> db.Employee.save({_id:50,"EmployeeName":"Raju"})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+-- pretty to display in format
+> db.Employee.find().pretty()
+{ "_id" : 10, "EmployeeName" : "Smith" }
+{ "_id" : 20, "EmployeeName" : "Nandhi" }
+{ "_id" : 30, "EmployeeName" : "Rajan" }
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+-- Predicates
+> db.Employee.find({"EmployeeName":"Raju"})
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+> db.Employee.find({$and:[{"EmployeeName":"Raju"},{"_id":50}]})
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+> db.Employee.find({$or:[{"EmployeeName":"Raju"},{"_id":50}]})
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+> db.Employee.find({"_id":{$lt:30}})
+{ "_id" : 10, "EmployeeName" : "Smith" }
+{ "_id" : 20, "EmployeeName" : "Nandhi" }
+
+> db.Employee.find({"_id":{$gt:30}})
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+> db.Employee.find({"_id":{$lte:30}})
+{ "_id" : 10, "EmployeeName" : "Smith" }
+{ "_id" : 20, "EmployeeName" : "Nandhi" }
+{ "_id" : 30, "EmployeeName" : "Rajan" }
+
+> db.Employee.find({"_id":{$ne:30}})
+{ "_id" : 10, "EmployeeName" : "Smith" }
+{ "_id" : 20, "EmployeeName" : "Nandhi" }
+{ "_id" : 50, "EmployeeName" : "Raju" }
+
+-- Update
+> db.Employee.update({"EmployeeName":"Raju"},{$set:{"EmployeeName":"RajuUpd"}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+-- Remove matched document
+> db.Employee.remove({"EmployeeName":"Smith"})
+WriteResult({ "nRemoved" : 1 })
+
+-- Remove first matched document
+> db.Employee.remove({"EmployeeName":"Rajan"},1)
+WriteResult({ "nRemoved" : 1 })
+
+-- Truncate
+> db.Employee.remove({})
+WriteResult({ "nRemoved" : 2 })
+
+-- Projection - Show only required fields - 1 for Show / 0 for Hide
+-- Hide all
+> db.Employee.find({},{KEY:1})
+{ "_id" : ObjectId("5c89440f811def3a176186a3") }
+{ "_id" : ObjectId("5c89440f811def3a176186a4") }
+{ "_id" : ObjectId("5c89440f811def3a176186a5") }
+
+-- Show all , equalent to find()
+> db.Employee.find({},{KEY:0})
+{ "_id" : ObjectId("5c89440f811def3a176186a3"), "EmployeeName" : "Nandhi" }
+{ "_id" : ObjectId("5c89440f811def3a176186a4"), "EmployeeName" : "Rajan" }
+{ "_id" : ObjectId("5c89440f811def3a176186a5"), "EmployeeName" : "Pandi" }
+
+> db.Employee.find({},{"EmployeeName":1,"_id":0})
+{ "EmployeeName" : "Nandhi" }
+{ "EmployeeName" : "Rajan" }
+{ "EmployeeName" : "Pandi" }
+{ "EmployeeName" : "Raj" }
+
+> db.Employee.find({},{"Department":1,"_id":0})
+{  }
+{  }
+{  }
+{ "Department" : "Compyter Science" }
+
+> db.Employee.find().limit(1)
+{ "_id" : ObjectId("5c89440f811def3a176186a3"), "EmployeeName" : "Nandhi" }
+
+> db.Employee.find().skip(1)
+{ "_id" : ObjectId("5c89440f811def3a176186a4"), "EmployeeName" : "Rajan" }
+{ "_id" : ObjectId("5c89440f811def3a176186a5"), "EmployeeName" : "Pandi" }
+{ "_id" : ObjectId("5c89447e811def3a176186a6"), "EmployeeName" : "Raj", "Department" : "Compyter Science" }
+
+> db.Employee.find().skip(2)
+{ "_id" : ObjectId("5c89440f811def3a176186a5"), "EmployeeName" : "Pandi" }
+{ "_id" : ObjectId("5c89447e811def3a176186a6"), "EmployeeName" : "Raj", "Department" : "Compyter Science" }
+
+> db.Employee.find().sort({"EmployeeName":1})
+{ "_id" : ObjectId("5c89440f811def3a176186a3"), "EmployeeName" : "Nandhi" }
+{ "_id" : ObjectId("5c89440f811def3a176186a5"), "EmployeeName" : "Pandi" }
+{ "_id" : ObjectId("5c89447e811def3a176186a6"), "EmployeeName" : "Raj", "Department" : "Compyter Science" }
+{ "_id" : ObjectId("5c89440f811def3a176186a4"), "EmployeeName" : "Rajan" }
+> db.Employee.find().sort({"EmployeeName":-1})
+{ "_id" : ObjectId("5c89440f811def3a176186a4"), "EmployeeName" : "Rajan" }
+{ "_id" : ObjectId("5c89447e811def3a176186a6"), "EmployeeName" : "Raj", "Department" : "Compyter Science" }
+{ "_id" : ObjectId("5c89440f811def3a176186a5"), "EmployeeName" : "Pandi" }
+{ "_id" : ObjectId("5c89440f811def3a176186a3"), "EmployeeName" : "Nandhi" }
+
+-- Indexing 
+> db.Employee.ensureIndex({"EmployeeName":1})
+{
+        "createdCollectionAutomatically" : false,
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "ok" : 1
+}
+
+-- Aggregation
+> db.Student.aggregate([{$group:{_id:"$Retailer",No_of_sales:{$sum:1}}}])
+{ "_id" : "ret2", "No_of_sales" : 1 }
+{ "_id" : "ret1", "No_of_sales" : 2 }
+> db.Student.aggregate([{$group:{_id:"$Item",No_of_sales:{$sum:1}}}])
+{ "_id" : "Pen", "No_of_sales" : 1 }
+{ "_id" : "Bottle", "No_of_sales" : 2 }
+
+
+
