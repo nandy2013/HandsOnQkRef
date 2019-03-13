@@ -1,68 +1,38 @@
+-- New db Creation/Switch to existing db
 > use test_db
 switched to db test_db
+
+-- Current db 
 > db
 test_db
+
+-- List all dbs available (Show only the dbs with the collection on it)
 > show dbs
 admin   0.000GB
 config  0.000GB
 local   0.000GB
 test    0.000GB
+
+-- Insert / Create collection internally
 > db.module.insert({"name":"beer"})
 WriteResult({ "nInserted" : 1 })
+
+-- List all dbs available (Now test_db is displayed)
 > show dbs
 admin    0.000GB
 config   0.000GB
 local    0.000GB
 test     0.000GB
 test_db  0.000GB
-> db.dropdatabase()
-2019-03-12T14:01:50.563+0530 E QUERY    [js] TypeError: db.dropdatabase is not a function :
-@(shell):1:1
+
+-- Drop db
 > db.dropDatabase()
 { "dropped" : "test_db", "ok" : 1 }
+
+-- Create collection
 > db.createCollection("item");
 { "ok" : 1 }
+
+-- Show all collections
 > show collections
 item
-> show documents
-2019-03-12T14:05:34.372+0530 E QUERY    [js] Error: don't know how to show [documents] :
-shellHelper.show@src/mongo/shell/utils.js:1066:11
-shellHelper@src/mongo/shell/utils.js:766:15
-@(shellhelp2):1:1
->
-> show collections
-item
-> db
-test_db
-> db.module.insert({"name":"beer"})
-WriteResult({ "nInserted" : 1 })
-> show collections
-item
-module
-> db.createCollection("exception",{capped:true,autoIndexId:true,size:6142,max:2})
-{
-        "note" : "the autoIndexId option is deprecated and will be removed in a future release",
-        "ok" : 1
-}
-> db.exception.insert({"extrncode":"1234"});
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1235"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
->
-> db.exception.insert({"extrncode":"1236"})
-WriteResult({ "nInserted" : 1 })
->
