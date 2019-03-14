@@ -1,6 +1,5 @@
 /* To be explored 
 -- Datatypes usage
--- AND and OR on same statement - stack overflow
 -- Index Params
 -- Aggregation functions
 */
@@ -105,6 +104,9 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 > db.Employee.find({$or:[{"EmployeeName":"Raju"},{"_id":50}]})
 { "_id" : 50, "EmployeeName" : "Raju" }
 
+-- AND / OR together
+> db.Employee.find({$or:[{"EmployeeName":"Smith"},{"EmployeeName":"Rajan","_id":30}]})
+
 > db.Employee.find({"_id":{$lt:30}})
 { "_id" : 10, "EmployeeName" : "Smith" }
 { "_id" : 20, "EmployeeName" : "Nandhi" }
@@ -202,6 +204,8 @@ WriteResult({ "nRemoved" : 2 })
 > db.Student.aggregate([{$group:{_id:"$Item",No_of_sales:{$sum:1}}}])
 { "_id" : "Pen", "No_of_sales" : 1 }
 { "_id" : "Bottle", "No_of_sales" : 2 }
+
+-- Replication and Shrading
 
 
 
